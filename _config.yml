@@ -11,7 +11,7 @@ description: God is love.
 github_username: IsaacCheng1
 
 # Email and twitter are optional:
-email:
+email: xianbing@stanford.edu
 twitter_username:
 
 # Set this to true to get LaTeX math equation support
@@ -23,7 +23,6 @@ google_analytics:
 # Everything below here can be ignored, unless you want to change the theme entirely
 theme: minima
 plugins:
-  - jekyll-feed
   - jekyll-gist
   - jekyll-octicons
   - jekyll-github-metadata
