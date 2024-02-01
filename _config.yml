@@ -23,9 +23,6 @@ google_analytics:
 # Everything below here can be ignored, unless you want to change the theme entirely
 theme: minima
 plugins:
-  - jekyll-gist
-  - jekyll-octicons
-  - jekyll-github-metadata
 
 titles_from_headings:
   enabled:     true
