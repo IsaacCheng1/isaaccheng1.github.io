@@ -20,10 +20,6 @@ use_math: true
 # Add your Google Analytics ID here if you have one and want to use it
 google_analytics:
 
-# Everything below here can be ignored, unless you want to change the theme entirely
-theme: minima
-plugins:
-
 titles_from_headings:
   enabled:     false
   strip_title: true
