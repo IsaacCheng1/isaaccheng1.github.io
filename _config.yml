@@ -25,7 +25,7 @@ theme: minima
 plugins:
 
 titles_from_headings:
-  enabled:     true
+  enabled:     false
   strip_title: true
   collections: true
 
