@@ -5,14 +5,8 @@ module JekyllFeed
     safe true
     priority :lowest
 
-    alias_method :old_generate, :generate
-
-    def generate(site)
-      if site.config["feed"]["disable"]
-        Jekyll.logger.info "Jekyll Feed disabled"
-      else
-        old_generate(site)
-      end
+    # Main plugin action, called by Jekyll-core
+    def generate(_site)
     end
   end
 end
