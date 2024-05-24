@@ -1,4 +1,4 @@
-# Softmax Regression NN in numpy, from scratch
+# Softmax Regression NN in python/numpy, from scratch
 
 This doc shows the python/numpy code to train a _two layer neural network_ on _MNIST_ data.   
 - The loss function is _softmax / cross-entropy loss_.  
