@@ -172,7 +172,7 @@ def train_nn(X_tr, y_tr, X_te, y_te, hidden_dim = 500,
               .format(epoch, train_loss, train_err, test_loss, test_err))
 ```
 
-## 4. run code
+## 5. run code
 ```python
 if __name__ == "__main__":
     # load data
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     train_nn(X_tr, y_tr, X_te, y_te, hidden_dim=100, epochs=20, lr = 0.2)
 ```
 
-## 5. result
+## 6. result
 ```python
 | Epoch | Train Loss | Train Err | Test Loss | Test Err |
 |     0 |    0.15324 |   0.04697 |   0.16306 |  0.04920 |
