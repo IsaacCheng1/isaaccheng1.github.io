@@ -1,6 +1,6 @@
 # Softmax Regression NN, from scratch
 
-This doc shows the code to train a _two layer neural network_ on _MNIST_ data.   
+This doc shows the python/numpy code to train a _two layer neural network_ on _MNIST_ data.   
 - The loss function is _softmax / cross-entropy loss_.  
 - The activation function used in the hidden layer is _ReLU_.   
 - Use _vanilla_ _SGD_ to update gradient.  
