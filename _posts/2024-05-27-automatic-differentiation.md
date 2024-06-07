@@ -1,6 +1,6 @@
 # Automatic Differentiation in python/numpy, from scratch
 
-The way to do automatic differentiation here is:
+The way to do automatic differentiation in my work is:
 1. build a computational graph;
 2. compute the gradient in the _reverse_ typological order of the computational graph. When computing the gradient, new node is added into the existing computational graph.
 
