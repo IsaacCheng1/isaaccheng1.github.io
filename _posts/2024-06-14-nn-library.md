@@ -38,7 +38,7 @@ def kaiming_normal(fan_in, fan_out, nonlinearity="relu", **kwargs):
 
 ## 2. Modules, which takes Tensor in and computes output Tensor
 A module takes a Tensor in and computes output Tensor.  
-It has parameter(s), which is Tensor.
+It has parameter(s), which is trainable Tensor.  
 
 Here is the `Module` class:
 ```python
@@ -104,6 +104,7 @@ class Module:
     def __call__(self, *args, **kwargs):
         return self.forward(*args, **kwargs)
 ```
-
+`parameters()` method returns all the parameters of the `Module`.
+`_children()` method returns all the sub-modules (children modules) of the `Module`.
 
 
