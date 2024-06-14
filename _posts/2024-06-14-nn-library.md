@@ -104,7 +104,18 @@ class Module:
     def __call__(self, *args, **kwargs):
         return self.forward(*args, **kwargs)
 ```
-`parameters()` method returns all the parameters of the `Module`.
-`_children()` method returns all the sub-modules (children modules) of the `Module`.
+`parameters()` method returns all the parameters of the `Module`.  
+`_children()` method returns all the sub-modules (children modules) of the `Module`.  
+`__call__` and `forward()` method computes the output Tensor, given input Tensors.  
+
+  
+I define various NN Modules below:
+- Linear Module
+- Residual Module
+- Softmax Loss Module
+- Dropout Module
+- Normalization Module
+
+### 2.1 Linear Module
 
 
