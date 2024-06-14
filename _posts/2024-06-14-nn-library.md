@@ -6,6 +6,8 @@ A neural network library can be composed of:
 3. data loader;
 4. optimizer
 
+This doc shows the key components of a neural network libray. For more details, please refer to my github [repo](https://github.com/IsaacCheng1/needle/tree/main).
+
 ## 1. Weight Initializer
 X
 
