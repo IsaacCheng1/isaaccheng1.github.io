@@ -313,7 +313,7 @@ class LayerNorm1d(Module):
 ```
 
 ## 3. Data Loader
-`DataLoader` samples mini-batches from the `DataSet`.  
+`DataLoader` samples mini-batches from the `DataSet`. So, we first need `DataSet` class.    
 
 Here is the `DataSet` class
 
