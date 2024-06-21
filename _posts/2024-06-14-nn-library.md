@@ -588,7 +588,7 @@ class Adam(Optimizer):
             w.data = w.data - self.lr * grad
 ```
 
-## Build a ResNet
+## 5. Build a ResNet
 Here I use my own NN library to build a ResNet, and train it.
 
 It is worth to mention that the code below is composed of 3 parts:
@@ -749,4 +749,15 @@ if __name__ == "__main__":
 
 Here are the results:
 ```
+| Epoch | Train Loss | Train Err | Test Loss | Test Err |
+|     0 |    0.39779 |   0.12203 |   0.14865 |  0.04770 |
+|     1 |    0.15603 |   0.04720 |   0.11814 |  0.03840 |
+|     2 |    0.10818 |   0.03250 |   0.10714 |  0.03370 |
+|     3 |    0.08431 |   0.02520 |   0.10327 |  0.03270 |
+|     4 |    0.07054 |   0.02085 |   0.09522 |  0.02920 |
+|     5 |    0.06343 |   0.01912 |   0.10337 |  0.03030 |
+|     6 |    0.05785 |   0.01783 |   0.09027 |  0.02850 |
+|     7 |    0.05051 |   0.01525 |   0.09497 |  0.02810 |
+|     8 |    0.05235 |   0.01585 |   0.09538 |  0.02740 |
+|     9 |    0.04713 |   0.01448 |   0.09400 |  0.02840 |
 ```
