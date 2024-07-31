@@ -1,6 +1,7 @@
 # CPU and GPU Acceleration for Linear Algebra
 
-This doc shows how to build an NDArray from scratch.  
+This doc shows how to build an NDArray from scratch.
+Most importantly, this doc shows that how to CPU and GPU/CUDA programming for a well-known NDArray operation - Matrix Multiplication.
 
 
 ## 1. BackendDevice class (Numpy, CPU or CUDA)
@@ -333,7 +334,7 @@ As you can see from above, a large number of operations can all be handled by ju
 - sub-setting of matrices
 - permute  
 
-## 2. Operations of NDArray
+## 3. CPU and GPU Acceleration for Matrix Multiplication 
 The operations on arrays of data needs to be implemented
 - in C++ CPU programming, if the backend is CPU;
 - in C++ CUDA programming, if the backend is GPU.
@@ -341,4 +342,230 @@ The operations on arrays of data needs to be implemented
 The operations include
 - compact
 - set item
-- matrix multiplication and etc.
+- add
+- divide
+- power
+- exp
+- log
+- matrix multiplication
+- ...
+
+Here, we focus on CPU programming and CUDA programming to accelerate matrix multiplication.
+
+#### 3.1 CPU Programming for Matrix Multiplication
+```
+class NDArray:
+    ...
+    ### Matrix multiplication
+    def __matmul__(self, other):
+        """Matrix multplication of two arrays.  This requires that both arrays
+        be 2D (i.e., we don't handle batch matrix multiplication), and that the
+        sizes match up properly for matrix multiplication.
+
+        In the case of the CPU backend, I implement an efficient "tiled"
+        version of matrix multiplication for the case when all dimensions of
+        the array are divisible by self.device.__tile_size__.  In this case,
+        the code below will restride and compact the matrix into tiled form,
+        and then pass to the relevant CPU backend.  For the CPU version we will
+        just fall back to the naive CPU implementation if the array shape is not
+        a multiple of the tile size
+        """
+
+        assert self.ndim == 2 and other.ndim == 2
+        assert self.shape[1] == other.shape[0]
+
+        m, n, p = self.shape[0], self.shape[1], other.shape[1]
+
+        # if the matrix is aligned, use tiled matrix multiplication
+        if hasattr(self.device, "matmul_tiled") and all(
+            d % self.device.__tile_size__ == 0 for d in (m, n, p)
+        ):
+
+            def tile(a, tile):
+                return a.as_strided(
+                    (a.shape[0] // tile, a.shape[1] // tile, tile, tile),
+                    (a.shape[1] * tile, tile, self.shape[1], 1),
+                )
+
+            t = self.device.__tile_size__
+            a = tile(self.compact(), t).compact()
+            b = tile(other.compact(), t).compact()
+            out = NDArray.make((a.shape[0], b.shape[1], t, t), device=self.device)
+            self.device.matmul_tiled(a._handle, b._handle, out._handle, m, n, p)
+
+            return (
+                out.permute((0, 2, 1, 3))
+                .compact()
+                .reshape((self.shape[0], other.shape[1]))
+            )
+
+        else:
+            out = NDArray.make((m, p), device=self.device)
+            self.device.matmul(
+                self.compact()._handle, other.compact()._handle, out._handle, m, n, p
+            )
+            return out
+    ...
+
+```
+
+Here is the C++ code for `matmul()` in CPU
+```c
+void Matmul(const AlignedArray& a, const AlignedArray& b, AlignedArray* out, uint32_t m, uint32_t n,
+            uint32_t p) {
+  /**
+   * Multiply two (compact) matrices into an output (also compact) matrix.  For this implementation
+   * you can use the "naive" three-loop algorithm.
+   *
+   * Args:
+   *   a: compact 2D array of size m x n
+   *   b: compact 2D array of size n x p
+   *   out: compact 2D array of size m x p to write the output to
+   *   m: rows of a / out
+   *   n: columns of a / rows of b
+   *   p: columns of b / out
+   */
+  for (size_t i = 0; i < m; i++) {
+    for (size_t j = 0; j < p; j++) {
+      scalar_t v = 0.0f;
+      
+      for (size_t k = 0; k < n; k++) {
+        v += a.ptr[i * n + k] * b.ptr[k * p + j];
+      }
+
+      out->ptr[i * p + j] = v;
+    }
+  }
+}
+
+inline void AlignedDot(const float* __restrict__ a,
+                       const float* __restrict__ b,
+                       float* __restrict__ out) {
+
+  /**
+   * Multiply together two TILE x TILE matrices, and _add _the result to out (it is important to add
+   * the result to the existing out, which you should not set to zero beforehand).  We are including
+   * the compiler flags here that enable the compile to properly use vector operators to implement
+   * this function.  Specifically, the __restrict__ keyword indicates to the compile that a, b, and
+   * out don't have any overlapping memory (which is necessary in order for vector operations to be
+   * equivalent to their non-vectorized counterparts (imagine what could happen otherwise if a, b,
+   * and out had overlapping memory).  Similarly the __builtin_assume_aligned keyword tells the
+   * compiler that the input array will be aligned to the appropriate blocks in memory, which also
+   * helps the compiler vectorize the code.
+   *
+   * Args:
+   *   a: compact 2D array of size TILE x TILE
+   *   b: compact 2D array of size TILE x TILE
+   *   out: compact 2D array of size TILE x TILE to write to
+   */
+
+  a = (const float*)__builtin_assume_aligned(a, TILE * ELEM_SIZE);
+  b = (const float*)__builtin_assume_aligned(b, TILE * ELEM_SIZE);
+  out = (float*)__builtin_assume_aligned(out, TILE * ELEM_SIZE);
+
+  for (size_t i = 0; i < TILE; i++) {
+     for (size_t j = 0; j < TILE; j++) {
+
+        for (size_t k = 0; k < TILE; k++) {
+          out[i * TILE + j] += a[i * TILE + k] * b[k * TILE + j];
+        }
+
+     }
+  }
+}
+
+void MatmulTiled(const AlignedArray& a, const AlignedArray& b, AlignedArray* out, uint32_t m,
+                 uint32_t n, uint32_t p) {
+  /**
+   * Matrix multiplication on tiled representations of array.  In this setting, a, b, and out
+   * are all *4D* compact arrays of the appropriate size, e.g. a is an array of size
+   *   a[m/TILE][n/TILE][TILE][TILE]
+   * You should do the multiplication tile-by-tile to improve performance of the array (i.e., this
+   * function should call `AlignedDot()` implemented above).
+   *
+   * Note that this function will only be called when m, n, p are all multiples of TILE, so you can
+   * assume that this division happens without any remainder.
+   *
+   * Args:
+   *   a: compact 4D array of size m/TILE x n/TILE x TILE x TILE
+   *   b: compact 4D array of size n/TILE x p/TILE x TILE x TILE
+   *   out: compact 4D array of size m/TILE x p/TILE x TILE x TILE to write to
+   *   m: rows of a / out
+   *   n: columns of a / rows of b
+   *   p: columns of b / out
+   *
+   */
+   for (size_t i = 0; i < m/TILE; i++) {
+      for (size_t j = 0; j < p/TILE; j++) {
+          // find out the tile in out
+          float* outTile = out->ptr + i * p/TILE * TILE * TILE + j * TILE * TILE;
+
+          // init out with 0.0f
+          for (size_t l = 0; l < TILE * TILE; l++) {
+            outTile[l] = 0.0f;
+          }
+
+          for (size_t k = 0; k < n/TILE; k++) {
+              // 1st: find out the tile in a
+              float* aTile = a.ptr + i * n * TILE + k * TILE * TILE;
+
+              // 2nd: find out the tile in b
+              float* bTile = b.ptr + k * p * TILE + j * TILE * TILE;
+
+              // 3rd: multiply tile by tile by calling AlignedDot()
+              AlignedDot(aTile, bTile, outTile);
+          }
+      }
+   }
+}
+```
+The benefits of matrix multiplication on tiled representation is memory reuse. After each tile of matrix is loaded into CPU registers, the value of each tile will be re-read (i.e. re-used) by CPU multiple times.
+
+
+#### 3.2 CUDA Programming for Matrix Multiplication
+```c
+__global__ void MatmulKernel(const scalar_t* a, const scalar_t* b, scalar_t* out, size_t size, uint32_t M, uint32_t N,
+            uint32_t P) {
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if (gid < size) {
+      size_t row_id = gid / P;
+      size_t col_id = gid % P;
+
+      scalar_t s = 0.0f;
+      for (size_t i = 0; i < N; i++) {
+        s += a[row_id * N + i] * b[i * P + col_id];
+      }
+      out[gid] = s;
+  }
+}
+
+void Matmul(const CudaArray& a, const CudaArray& b, CudaArray* out, uint32_t M, uint32_t N,
+            uint32_t P) {
+  /**
+   * Multiply two (compact) matrices into an output (also comapct) matrix.  You will want to look
+   * at the lecture and notes on GPU-based linear algebra to see how to do this.  Since ultimately
+   * mugrade is just evaluating correctness, you _can_ implement a version that simply parallelizes
+   * over (i,j) entries in the output array.  However, to really get the full benefit of this
+   * problem, we would encourage you to use cooperative fetching, shared memory register tiling, 
+   * and other ideas covered in the class notes.  Note that unlike the tiled matmul function in
+   * the CPU backend, here you should implement a single function that works across all size
+   * matrices, whether or not they are a multiple of a tile size.  As with previous CUDA
+   * implementations, this function here will largely just set up the kernel call, and you should
+   * implement the logic in a separate MatmulKernel() call.
+   * 
+   *
+   * Args:
+   *   a: compact 2D array of size m x n
+   *   b: comapct 2D array of size n x p
+   *   out: compact 2D array of size m x p to write the output to
+   *   M: rows of a / out
+   *   N: columns of a / rows of b
+   *   P: columns of b / out
+   */
+
+  CudaDims dim = CudaOneDim(out->size);
+  MatmulKernel<<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size, M, N, P);
+}
+```
+The benefits of GPU is that there are many threads (say hundreds of threads) working for 1 matrix multiplication in parallel.
+
