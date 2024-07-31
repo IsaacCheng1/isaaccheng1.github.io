@@ -327,10 +327,18 @@ class NDArray:
 
     ...
 ```
-As you can see from above, a large number of operations likes
+As you can see from above, a large number of operations can all be handled by just adjusting the high-level structure of the array, like it's strides and shape.
 - transpose
 - broadcast
 - sub-setting of matrices
 - permute  
-can all be handled by just adjusting the high-level structure of the array, like it's strides and shape.
 
+## 2. Operations of NDArray
+The operations on arrays of data needs to be implemented
+- in C++ CPU programming, if the backend is CPU;
+- in C++ CUDA programming, if the backend is GPU.
+
+The operations include
+- compact
+- set item
+- matrix multiplication and etc.
