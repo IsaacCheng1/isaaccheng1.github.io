@@ -1,5 +1,7 @@
 # CPU and GPU Acceleration for Linear Algebra
 
+This doc shows how to build an NDArray from scratch.  
+
 
 ## 1. BackendDevice class (Numpy, CPU or CUDA)
 BackendDevice class is a simple wrapper that contains the underlying device backend (e.g., CPU or CUDA).
