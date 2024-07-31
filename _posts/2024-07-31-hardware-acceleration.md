@@ -1,7 +1,7 @@
 # CPU and GPU Acceleration for Linear Algebra
 
 
-## 1. BackendDevice class, wrapper of Numpy, CPU or CUDA.
+## 1. BackendDevice class (Numpy, CPU or CUDA)
 BackendDevice class is a simple wrapper that contains the underlying device backend (e.g., CPU or CUDA).
 ```python
 class BackendDevice:
