@@ -1,7 +1,8 @@
 # CPU and GPU Acceleration for Linear Algebra
 
-This doc shows how to build an NDArray from scratch.
-Most importantly, this doc shows that how to CPU and GPU/CUDA programming for a well-known NDArray operation - Matrix Multiplication.
+This doc shows how to build an NDArray from scratch.  
+Most importantly, this doc shows that how to CPU and GPU/CUDA programming for a well-known NDArray operation - Matrix Multiplication.  
+For more details, please refer to my github [repo](https://github.com/IsaacCheng1/needle/tree/main).
 
 
 ## 1. BackendDevice class (Numpy, CPU or CUDA)
