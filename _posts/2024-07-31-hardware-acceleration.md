@@ -51,7 +51,11 @@ class BackendDevice:
         return arr
 ```
 
-I implement 3 different backends: a Numpy backend, a native CPU backend, and a GPU backend.
+I implement 3 different backends: 
+- a Numpy backend;
+- a native CPU backend;
+- a GPU backend.
+
 ```python
 def cuda():
     """Return cuda device"""
