@@ -327,11 +327,10 @@ class NDArray:
 
     ...
 ```
-
-A large number of operations likes
+As you can see from above, a large number of operations likes
 - transpose
 - broadcast
 - sub-setting of matrices
-- permute
+- permute  
 can all be handled by just adjusting the high-level structure of the array, like it's strides and shape.
 
